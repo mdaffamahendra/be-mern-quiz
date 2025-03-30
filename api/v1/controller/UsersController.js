@@ -80,7 +80,8 @@ const signin = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Hanya aktif di HTTPS
-      sameSite: "strict",
+      sameSite: "none",
+      domain: "http://localhost:5173a",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
     });
 
@@ -88,7 +89,12 @@ const signin = async (req, res) => {
     res.status(200).json({
       message: "Login successful",
       accessToken,
-      user: { id: user._id, email: user.email, role: user.role, username: user.username }, // Jangan kirim password
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        username: user.username,
+      }, // Jangan kirim password
     });
   } catch (error) {
     res
@@ -107,13 +113,17 @@ const refreshToken = async (req, res) => {
     // Cek apakah refresh token valid
     const user = await User.findOne({ refreshToken });
     if (!user) {
-      return res.status(403).json({ message: "Invalid refresh token", cookies: req.cookies });
+      return res
+        .status(403)
+        .json({ message: "Invalid refresh token", cookies: req.cookies });
     }
 
     // Verifikasi token
     jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err, decoded) => {
       if (err) {
-        return res.status(403).json({ message: "Invalid refresh token", cookies: req.cookies });
+        return res
+          .status(403)
+          .json({ message: "Invalid refresh token", cookies: req.cookies });
       }
 
       // Buat access token baru
