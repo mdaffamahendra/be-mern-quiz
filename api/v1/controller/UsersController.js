@@ -107,13 +107,13 @@ const refreshToken = async (req, res) => {
     // Cek apakah refresh token valid
     const user = await User.findOne({ refreshToken });
     if (!user) {
-      return res.status(403).json({ message: "Invalid refresh token" });
+      return res.status(403).json({ message: "Invalid refresh token", cookies: req.cookies });
     }
 
     // Verifikasi token
     jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err, decoded) => {
       if (err) {
-        return res.status(403).json({ message: "Invalid refresh token" });
+        return res.status(403).json({ message: "Invalid refresh token", cookies: req.cookies });
       }
 
       // Buat access token baru
