@@ -81,7 +81,7 @@ const signin = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Hanya aktif di HTTPS
       sameSite: "none",
-      domain: "http://localhost:5173a",
+      domain: "http://localhost:5173",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
     });
 
@@ -99,7 +99,7 @@ const signin = async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Something went wrong", error: error.message });
+      .json({ message: "Something went wrong", error });
   }
 };
 
