@@ -114,7 +114,7 @@ const refreshToken = async (req, res) => {
     if (!user) {
       return res
         .status(403)
-        .json({ message: "Invalid refresh token", cookies: req.cookies });
+        .json({ message: "Invalid refresh token", cookiesUser: req.cookies });
     }
 
     // Verifikasi token
@@ -122,7 +122,7 @@ const refreshToken = async (req, res) => {
       if (err) {
         return res
           .status(403)
-          .json({ message: "Invalid refresh token", cookies: req.cookies });
+          .json({ message: "Invalid refresh token", cookiesJwt: req.cookies });
       }
 
       // Buat access token baru
