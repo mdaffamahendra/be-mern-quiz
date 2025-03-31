@@ -15,7 +15,7 @@ const app = express();
 
 // Middleware
 app.use(express.json()); // Biar bisa handle JSON dari request
-app.use(cors({ origin: "https://studywithquiz.vercel.app", credentials: true })); // Biar frontend bisa akses backend
+app.use(cors({ origin: ["https://studywithquiz.vercel.app", "http://localhost:5173"], credentials: true })); // Biar frontend bisa akses backend
 app.use(cookieParser());
 
 // Koneksi ke MongoDB
