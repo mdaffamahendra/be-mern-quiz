@@ -47,25 +47,22 @@ const signup = async (req, res) => {
 const signin = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Cek apakah user ada
     const user = await User.findOne({ email });
+
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
 
-    // Cek password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ message: "Email atau password salah" });
     }
 
-    // Buat Access Token (valid 15 menit)
+    // Generate tokens
     const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "12h",
     });
 
-    // Buat Refresh Token (valid 7 hari)
     const refreshToken = jwt.sign(
       { id: user._id },
       process.env.REFRESH_SECRET,
@@ -76,74 +73,54 @@ const signin = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    // Simpan refresh token di cookie (httpOnly agar tidak bisa diakses JS)
+    console.log("Token yang disimpan di DB:", user.refreshToken);// Debugging
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Hanya aktif di HTTPS
+      secure: true,
       sameSite: "None",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // Kirim response ke frontend (tanpa refresh token)
-    res.status(200).json({
-      message: "Login successful",
-      a : user;
-      accessToken,
-      refreshToken,
-      user: {
-        id: user._id,
-        email: user.email,
-        role: user.role,
-        username: user.username,
-      }, // Jangan kirim password
-    });
+    res.status(200).json({ message: "Login successful", accessToken });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong", error });
+    res.status(500).json({ message: "Something went wrong", error: error.message });
   }
 };
 
+
 const refreshToken = async (req, res) => {
   try {
+    console.log("Cookies yang diterima:", req.cookies);
+
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
       return res.status(403).json({ message: "Refresh token is required" });
     }
 
-    // Cek apakah refresh token valid
     const user = await User.findOne({ refreshToken });
+    console.log("User ditemukan:", user); // Debugging
+
     if (!user) {
-      return res
-        .status(403)
-        .json({ message: "Invalid refresh token", cookiesUser: req.cookies });
+      return res.status(403).json({ message: "Invalid refresh token User" });
     }
 
-    // Verifikasi token
     jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err, decoded) => {
       if (err) {
-        return res
-          .status(403)
-          .json({ message: "Invalid refresh token", cookiesJwt: req.cookies });
+        return res.status(403).json({ message: "Invalid refresh token jwt" });
       }
 
-      // Buat access token baru
-      const newAccessToken = jwt.sign(
-        { id: user._id },
-        process.env.JWT_SECRET,
-        { expiresIn: "12h" }
-      );
+      const newAccessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "12h",
+      });
 
-      res
-        .status(200)
-        .json({ accessToken: newAccessToken, message: refreshToken });
+      res.status(200).json({ accessToken: newAccessToken });
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong", error: error.message });
+    res.status(500).json({ message: "Something went wrong", error: error.message });
   }
 };
+
 
 const logout = async (req, res) => {
   try {
