@@ -112,7 +112,7 @@ const refreshToken = async (req, res) => {
       return res.status(403).json({ message: "Refresh token is required" });
     }
 
-    const user = await User.findOne({ refreshToken });
+    const user = await User.findOne({ refreshToken : req.cookies.refreshToken });
     console.log("User ditemukan:", user); // Debugging
 
     if (!user) {
