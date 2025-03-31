@@ -87,6 +87,7 @@ const signin = async (req, res) => {
     // Kirim response ke frontend (tanpa refresh token)
     res.status(200).json({
       message: "Login successful",
+      a : user;
       accessToken,
       refreshToken,
       user: {
