@@ -47,22 +47,25 @@ const signup = async (req, res) => {
 const signin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
 
+    // Cek apakah user ada
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
 
+    // Cek password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ message: "Email atau password salah" });
     }
 
-    // Generate tokens
+    // Buat Access Token (valid 15 menit)
     const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "12h",
     });
 
+    // Buat Refresh Token (valid 7 hari)
     const refreshToken = jwt.sign(
       { id: user._id },
       process.env.REFRESH_SECRET,
@@ -73,21 +76,32 @@ const signin = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    console.log("Token yang disimpan di DB:", user.refreshToken);// Debugging
-
+    // Simpan refresh token di cookie (httpOnly agar tidak bisa diakses JS)
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production", // Hanya aktif di HTTPS
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
     });
 
-    res.status(200).json({ message: "Login successful", accessToken });
+    // Kirim response ke frontend (tanpa refresh token)
+    res.status(200).json({
+      message: "Login successful",
+      accessToken,
+      refreshToken,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        username: user.username,
+      }, // Jangan kirim password
+    });
   } catch (error) {
-    res.status(500).json({ message: "Something went wrong", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Something went wrong", error });
   }
 };
-
 
 const refreshToken = async (req, res) => {
   try {
