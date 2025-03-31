@@ -88,6 +88,7 @@ const signin = async (req, res) => {
     res.status(200).json({
       message: "Login successful",
       accessToken,
+      refreshToken,
       user: {
         id: user._id,
         email: user.email,
