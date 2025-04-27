@@ -12,7 +12,7 @@ const addQuestion = async (req, res) => {
 
     try {
       parsedOptions = JSON.parse(options);
-      if (!Array.isArray(parsedOptions) || parsedOptions.length !== 4) {
+      if (!Array.isArray(parsedOptions) || parsedOptions.length !== 5) {
         return res
           .status(400)
           .json({ message: "Opsi jawaban harus diisi semua" });
@@ -93,7 +93,7 @@ const editQuestion = async (req, res) => {
     let parsedOptions;
     try {
       parsedOptions = JSON.parse(options);
-      if (!Array.isArray(parsedOptions) || parsedOptions.length !== 4) {
+      if (!Array.isArray(parsedOptions) || parsedOptions.length !== 5) {
         return res
           .status(400)
           .json({ message: "Opsi jawaban harus diisi semua" });

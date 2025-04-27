@@ -20,9 +20,9 @@ const QuestionSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: function (arr) {
-        return arr.length === 4;
+        return arr.length === 5;
       },
-      message: "Must provide exactly 4 answer options",
+      message: "Must provide exactly 5 answer options",
     },
   },
   correctAnswer: {
